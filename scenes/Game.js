@@ -104,27 +104,62 @@ export default class Game extends Phaser.Scene {
       null,
       this
     );
+
+    this.timer = 30;
+    this.timerText = this.add.text(16, 64, `Tiempo: ${this.timer}s`, {
+      fontSize: "32px",
+      fill: "#000",
+    });
+
+    this.rest = false;
+    this.loop = true;
+    this.time.addEvent({
+      delay: 1000, 
+      callback: () => { 
+        if (this.timer !== 0 && this.gameOver === false && this.rest === false) {
+          this.timer --;
+          this.timerText.setText(`Tiempo: ${this.timer }s`);
+        } else {
+          if (this.rest === false) {
+            this.GameOver();
+            this.loop = false; 
+          }
+        }
+      },
+      callbackScope: this, 
+      loop: this.loop, 
+    });
+
+    this.keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+    
+
+
   }
+
 
   update() {
     // update game objects
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-160);
-
       this.player.anims.play("left", true);
+
     } else if (this.cursors.right.isDown) {
       this.player.setVelocityX(160);
-
       this.player.anims.play("right", true);
+
     } else {
       this.player.setVelocityX(0);
-
       this.player.anims.play("turn");
     }
 
     if (this.cursors.up.isDown && this.player.body.touching.down) {
       this.player.setVelocityY(-330);
     }
+
+    if (Phaser.Input.Keyboard.JustDown(this.keyR)) {
+      this.scene.restart();
+    }
+
   }
 
   collectStar(player, star) {
@@ -153,12 +188,30 @@ export default class Game extends Phaser.Scene {
   }
 
   hitBomb(player, bomb) {
-    this.physics.pause();
-
-    this.player.setTint(0xff0000);
-
-    this.player.anims.play("turn");
-
+    this.GameOver();
     this.gameOver = true;
   }
+
+  GameOver(){
+    this.input.keyboard.removeAllKeys();
+    this.player.anims.pause();
+    this.physics.pause();
+    this.player.setTint(0xff0000);
+    this.player.anims.play("turn");
+
+    this.keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+
+    this.Loss = this.add.text(400, 192, `GAME OVER`, {
+      fontSize: "32px",
+      fill: "#000",
+    }).setOrigin(0.5).setDepth(10);
+
+    this.scoreText.setOrigin(0.5).setPosition(400, 240);
+
+    this.timerText.setText(`Tiempo: ${this.timer}s`, {
+      fontSize: "32px",
+      fill: "#000",
+    }).setOrigin(0.5).setPosition(400, 288).setDepth(10);
+  }
+
 }
